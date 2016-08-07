@@ -14,6 +14,7 @@ logging.basicConfig(level=logging.INFO)
 nginx_portmap_file="/etc/nginx/conf.d/lsfportmap.conf"
 nginx_restart_cmd="/sbin/service nginx restart"
 cache_file="/var/lsfportmap/data/cache.json"
+domain='orchestra.med.harvard.edu'
 
 def load_portmap(fpath=cache_file):
     return set([tuple(x) for x in json.loads(file(fpath).read())])
@@ -40,7 +41,7 @@ def doStuff():
     restart_nginx=False
     with dataLock:
         if last_portmap != portmap:
-            nginx_site_conf='\n'.join([frontend.render(endpoint=endpoint, name=name)
+            nginx_site_conf='\n'.join([frontend.render(endpoint=endpoint, name=name, domain=domain)
                                        for name, endpoint in portmap])
             with open(nginx_portmap_file, 'w') as f:
                 f.write(nginx_site_conf)
