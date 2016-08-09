@@ -125,7 +125,7 @@ if __name__ == '__main__':
     from pprint import pprint
     import random
     for j in bjobsuallw():
-        if j['user'] == 'dmf24' and j['state'] == 'RUN':
+        if ['dmf24', 'ic71'] and j['state'] == 'RUN':
             if isinstance(lsfparsehost(j['exec_host']), str):
                 registry.register(j)
     pprint(registry)
