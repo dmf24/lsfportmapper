@@ -15,11 +15,11 @@ nginx_portmap_file="/etc/nginx/conf.d/lsfportmap.conf"
 nginx_restart_cmd="/sbin/service nginx restart"
 
 portmap = load_portmap()
-last_portmap = copy.deepcopy(portmap)
+last_portmap = set([]) #copy.deepcopy(portmap)
 # variables that are accessible from anywhere
 
 def write_nginx_conf(portmap):
-    logging.info("Writing conf: %s" % nginx_site_conf)
+    logging.info("Writing conf: %s" % nginx_portmap_file)
     nginx_site_conf='\n'.join([frontend.render(endpoint=endpoint, name=name, domain=domain)
                                for name, endpoint in portmap])
     with open(nginx_portmap_file, 'w') as f:

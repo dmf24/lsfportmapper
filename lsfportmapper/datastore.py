@@ -5,6 +5,12 @@ dburl='mongodb://localhost:27017/'
 pmquery=dict(name='portmap')
 initial=dict(name='portmap', portmap=[])
 
+def pmset(pmq):
+    return set([tuple(lst) for lst in pmq['portmap']])
+
+def set2lst(pm):
+    return list([list(x) for x in pm])
+
 def load_portmap():
     coll=MongoClient(dburl).lsfportmap.lsfportmap
     ppm = coll.find_one(pmquery)
@@ -14,17 +20,23 @@ def load_portmap():
     if pm is not None:
         if pm.count() != 1:
             logging.warning("multiple portmaps found")
-        return set(pm[0]['portmap'])
+        return pmset(pm[0])
 
 def dump_portmap():
-    return set(MongoClient(dburl).lsfportmap.lsfportmap.find_one(pmquery)['portmap'])
+    return pmset(MongoClient(dburl).lsfportmap.lsfportmap.find_one(pmquery))
 
 def store_portmap(pm):
     coll=MongoClient(dburl).lsfportmap.lsfportmap
     return coll.replace_one(pmquery, {'name': 'portmap',
-                                      'portmap': list(pm)})
+                                      'portmap': set2lst(pm)})
+
+def drop_portmap():
+    MongoClient(dburl).lsfportmap.lsfportmap.drop()
+
 
 if __name__ == '__main__':
     import sys
     import json
-    sys.stdout.write("%s\n" % json.dumps(load_portmap(), indent=2))
+    portm=load_portmap()
+    sys.stdout.write("%s\n" % json.dumps(list(portm), indent=2))
+    sys.stdout.write("%s\n" % len(portm))

@@ -11,7 +11,6 @@ logging.basicConfig(level=logging.INFO)
 from datastore import load_portmap, store_portmap
 
 portmap = load_portmap()
-last_portmap = copy.deepcopy(portmap)
 
 AUTHORIZED=['TEST']
 
@@ -24,8 +23,8 @@ def add_map():
     endpoint=content['endpoint']
     name=content['name']
     if content['token'] in AUTHORIZED:
-        with dataLock:
-            portmap.add((name, endpoint))
+        portmap.add((name, endpoint))
+        store_portmap(portmap)
     return jsonify(True)
 
 @app.route("/api/del_map", methods=['GET', 'POST'])
@@ -47,10 +46,21 @@ def del_map():
             if len(items) == 1:
                 item=items[0]
         if item is not None:
-            with dataLock:
-                portmap.remove(item)
+            portmap.remove(item)
+            store_portmap(portmap)
             return jsonify(True)
     return jsonify(False)
+
+@app.route("/api/replace_all", methods=['GET', 'POST'])
+def replace_all():
+    global portmap
+    content=request.json
+    if content['token'] in AUTHORIZED:
+        portmap=content['registry']
+        store_portmap(portmap)
+        return jsonify(True)
+    else:
+        return jsonify({"error": "Not Authorized"})
 
 @app.route("/api/get_endpoint/<jobid>", methods=['GET'])
 def get_endpoint(jobid):
@@ -77,12 +87,7 @@ def dump_portmap():
 
 @app.route("/api/all_maps", methods=['GET'])
 def all_maps():
-    return jsonify(list(portmap))
-
-# Initiate
-doStuffStart()
-# When you kill Flask (SIGTERM), clear the trigger for the next thread
-atexit.register(interrupt)
+    return jsonify(list(load_portmap()))
 
 if __name__ == "__main__":
     app.run()

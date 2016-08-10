@@ -91,6 +91,12 @@ def server_del(name=None, endpoint=None):
                                                                 token=TOKEN))
     return response
 
+def server_update_all(registry):
+    response=requests.post("%s/api/replace_all" % server, json=dict(registry=[list(x) for x in registry],
+                                                                    token=TOKEN))
+    return response
+    
+
 def load_registry(url=None):
     if url is not None:
         response=requests.get(url)
@@ -125,16 +131,18 @@ if __name__ == '__main__':
     from pprint import pprint
     import random
     for j in bjobsuallw():
-        if ['dmf24', 'ic71'] and j['state'] == 'RUN':
+        if j['user'] in ['dmf24'] and j['state'] == 'RUN':
             if isinstance(lsfparsehost(j['exec_host']), str):
                 registry.register(j)
-    pprint(registry)
-    pprint(server_registry)
     delete_from_server=server_registry.difference(registry)
     add_to_server=registry.difference(server_registry)
-    print "delete", delete_from_server
-    for item in delete_from_server:
-        server_del(*item)
-    print "add", add_to_server
-    for item in add_to_server:
-        server_add(*item)
+    if len(delete_from_server) < 10:
+        logging.debug("delete\n%s" % delete_from_server)
+    else:
+        logging.debug("deleting %s entries" % len(delete_from_server))
+    if len(add_to_server) < 10:
+        logging.debug("add\n%s" % add_to_server)
+    else:
+        logging.debug("adding %s entries" % len(add_to_server))
+    if len(delete_from_server) > 0 or len(add_to_server) > 0:
+        server_update_all(registry)
